@@ -109,7 +109,10 @@ from day one, and treat the provider URL itself as a secret (it embeds the accou
 1. Skeleton Electron app + Xtream login + raw channel list playing through libmpv
    (proves the whole pipeline end to end before any UI polish).
 2. EPG ingestion + cache + virtualized grid.
-3. Live TV UX polish (favorites, switching, now/next).
+3. Live TV UX polish (favorites, switching, now/next) **plus a modern visual theme** —
+   cohesive colors/typography/spacing across channel list, guide, and settings (added
+   2026-07-05; the dated look of existing apps is why this project exists, so it stays
+   in v1 rather than v2).
 4. VOD/series browser.
 5. Packaging/installer.
 6. v2: recording service on docker-server + app integration.
@@ -167,4 +170,5 @@ Key choices unchanged from the original plan: Electron + libmpv, Xtream Codes as
 provider format, EPG grid quality as the defining feature, recordings deferred to v2
 running server-side on docker-server (never client-side). Next concrete action is build-order
 step 3: Live TV UX polish — favorites (star + persist + favorites-first/filter view),
-channel-name search over the loaded list, and quick channel switching.
+channel-name search over the loaded list, quick channel switching, and a modern visual
+theme (per Skip, 2026-07-05: modern colors/styling is expected in v1, not deferred).
