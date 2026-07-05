@@ -170,6 +170,17 @@ function EpgGrid({ config, channels, tunedStreamId, onTune }: EpgGridProps) {
     el.scrollLeft = Math.max(0, (minutes - 15) * PX_PER_MIN)
   }
 
+  // Open the grid at the current time rather than 12:00 AM. Runs once per
+  // mount (the Guide remounts whenever the tab is opened); keyed on status
+  // because the scroll container doesn't render until guide data exists.
+  const didInitialScrollRef = useRef(false)
+  useEffect(() => {
+    if (didInitialScrollRef.current || !scrollRef.current) return
+    didInitialScrollRef.current = true
+    scrollToTime(Date.now())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
   // Apply a pending jump (from search or jump-to-now) once the target day is
   // the active day.
   useEffect(() => {
