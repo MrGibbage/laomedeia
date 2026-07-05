@@ -222,6 +222,8 @@ function buildFtsQuery(input: string): string | null {
   return tokens.map((t) => `"${t}"*`).join(' ')
 }
 
+// Search answers "what can I watch, now or later" — programmes that already
+// ended are excluded (still-airing ones stay in).
 export function search(query: string, limit = 200): EpgSearchResult[] {
   const match = buildFtsQuery(query)
   if (!match) return []
@@ -232,11 +234,11 @@ export function search(query: string, limit = 200): EpgSearchResult[] {
        FROM programmes_fts f
        JOIN programmes p ON p.id = f.rowid
        LEFT JOIN epg_channels c ON c.id = p.channel_id
-       WHERE programmes_fts MATCH ?
+       WHERE programmes_fts MATCH ? AND p.stop_ms > ?
        ORDER BY p.start_ms
        LIMIT ?`,
     )
-    .all(match, limit) as Array<{
+    .all(match, Date.now(), limit) as Array<{
     id: number
     channel_id: string
     start_ms: number

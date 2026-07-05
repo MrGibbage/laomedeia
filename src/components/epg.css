@@ -262,6 +262,23 @@
   background: var(--bg-2);
 }
 
+.epg-search-result.epg-sr-live {
+  background: var(--accent-soft);
+}
+
+.epg-search-result .epg-sr-live-badge {
+  align-self: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: #ffffff;
+  background: var(--now-line);
+  border-radius: 4px;
+  padding: 3px 5px;
+  flex-shrink: 0;
+}
+
 .epg-search-result .epg-sr-time {
   font-size: 0.78rem;
   color: var(--text-dim);

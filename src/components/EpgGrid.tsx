@@ -280,16 +280,24 @@ function EpgGrid({ config, channels, tunedStreamId, onTune }: EpgGridProps) {
               No matches.
             </div>
           ) : (
-            searchResults.map((r) => (
-              <div key={r.id} className="epg-search-result" onClick={() => openSearchResult(r)}>
-                <span className="epg-sr-time">
-                  {fmtDay(r.startMs)} {fmtTime(r.startMs)}–{fmtTime(r.stopMs)}
-                </span>
-                <span className="epg-sr-channel">{r.channelName}</span>
-                <span className="epg-sr-title">{r.title}</span>
-                <span className="epg-sr-desc">{r.description}</span>
-              </div>
-            ))
+            searchResults.map((r) => {
+              const isLive = r.startMs <= nowMs && r.stopMs > nowMs
+              return (
+                <div
+                  key={r.id}
+                  className={`epg-search-result${isLive ? ' epg-sr-live' : ''}`}
+                  onClick={() => openSearchResult(r)}
+                >
+                  <span className="epg-sr-time">
+                    {fmtDay(r.startMs)} {fmtTime(r.startMs)}–{fmtTime(r.stopMs)}
+                  </span>
+                  {isLive && <span className="epg-sr-live-badge">LIVE</span>}
+                  <span className="epg-sr-channel">{r.channelName}</span>
+                  <span className="epg-sr-title">{r.title}</span>
+                  <span className="epg-sr-desc">{r.description}</span>
+                </div>
+              )
+            })
           )}
         </div>
       ) : !hasData ? (
