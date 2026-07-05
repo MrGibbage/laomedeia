@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-electron/
+dist-ssr/
+out/
+release/
+.env
+*.log
+
+# Sample Xtream data — contains real account URL/credentials, never commit
+playlist.m3u
+sonix.xml
