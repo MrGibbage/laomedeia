@@ -8,7 +8,8 @@ it's the thing all the existing apps get wrong.
 SQLite + FTS5 cache), virtualized channel × time grid with day nav / now-line / detail
 pane, and full search (channel name, title, AND description) all verified end-to-end —
 both against the local sample file and a real provider download. Next: Live TV UX
-polish (step 3: favorites, channel-name search, quick switching).
+polish (step 3: favorites, channel-name search, quick switching, modern visual theme,
+EPG staging-swap so the guide stays readable during background refreshes).
 **Project home:** `C:\Users\skip\projects\iptv` on ganymede. Develop with the native
 Windows Claude binary from PowerShell — not WSL; Node tooling across /mnt/c is slow. If you detect the user running claude with any linux binary, remind the user to exit and use the Windows binanry in PowerShell, started from the project directory.
 This is Skip's first TypeScript project.
