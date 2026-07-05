@@ -52,6 +52,10 @@ interface Window {
     load: () => Promise<import('../electron/xtream').XtreamConfig | null>
     save: (config: import('../electron/xtream').XtreamConfig) => Promise<void>
   }
+  prefs: {
+    load: () => Promise<import('../electron/prefs-store').Prefs>
+    save: (prefs: import('../electron/prefs-store').Prefs) => Promise<void>
+  }
   epg: {
     refresh: (
       config: import('../electron/xtream').XtreamConfig,

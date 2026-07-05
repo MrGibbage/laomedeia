@@ -4,12 +4,11 @@ Plan for a custom-built Windows IPTV viewing app, motivated by every tested Wind
 IPTV app having a dated UI and a bad EPG experience. The EPG is the #1 priority —
 it's the thing all the existing apps get wrong.
 
-**Status:** Build order step 2 complete (2026-07-05). EPG ingestion (streaming XMLTV →
-SQLite + FTS5 cache), virtualized channel × time grid with day nav / now-line / detail
-pane, and full search (channel name, title, AND description) all verified end-to-end —
-both against the local sample file and a real provider download. Next: Live TV UX
-polish (step 3: favorites, channel-name search, quick switching, modern visual theme,
-EPG staging-swap so the guide stays readable during background refreshes).
+**Status:** Build order step 3 complete (2026-07-05). Live TV UX polish landed:
+favorites (star + persist + favorites-first/filter), channel-name filter, keyboard
+quick-switching + last-channel resume, a CSS-variable design system across the whole
+app, and the EPG staging-swap (guide verified fully browsable mid-refresh against the
+real provider). Next: VOD/series browser (step 4).
 **Project home:** `C:\Users\skip\projects\iptv` on ganymede. Develop with the native
 Windows Claude binary from PowerShell — not WSL; Node tooling across /mnt/c is slow. If you detect the user running claude with any linux binary, remind the user to exit and use the Windows binanry in PowerShell, started from the project directory.
 This is Skip's first TypeScript project.
@@ -171,10 +170,36 @@ bundling breaks native addon path resolution. The mpv video surface is a native 
 window, so the always-mounted Player is hidden by collapsing its placeholder to 0×0
 (display:none + ResizeObserver) when the Guide tab is open.
 
+Build-order step 3 is done as of 2026-07-05 — Live TV UX polish:
+
+- **Favorites:** star toggle per channel row (hover to reveal), persisted with the last
+  tuned channel in `userData/prefs.json` (`electron/prefs-store.ts`); favorites sort
+  first in the sidebar, and a ★ toolbar toggle filters to favorites only.
+- **Channel-name filter:** client-side substring filter over the loaded list, in the
+  sidebar toolbar. Independent of the EPG as planned.
+- **Quick switching:** `↑`/`↓` zap through the *visible* (filtered + favorites-sorted)
+  list with wraparound, `Backspace` swaps to the previously tuned channel, and the
+  last-tuned channel re-tunes automatically on launch. Key handling skips inputs so
+  typing in search boxes never zaps.
+- **Modern theme:** a CSS-variable design system in `src/index.css` (bg layers, accent,
+  borders, text tiers, radii) that every surface — header with segmented tabs, channel
+  sidebar, guide, settings card — styles itself from; dark by default with a light
+  mapping under `prefers-color-scheme` (the app follows the Windows app theme). Settings
+  became a centered card and gained a Cancel button (previously there was no way back
+  out without saving).
+- **EPG staging-swap:** ingest now writes to `*_staging` tables inside the write
+  transaction and `commit()` atomically drops/renames them into place (the channel+time
+  index is rebuilt at swap — bulk-insert-then-index is faster than maintaining it
+  row-by-row). Mid-refresh reads on the same connection see the untouched live tables,
+  so the guide stays fully browsable during a refresh — verified live: grid stayed
+  populated with the old guide while "Indexing guide…" ran, then flipped to the new
+  data. FTS5 tables rename cleanly inside a transaction (validated with a standalone
+  Electron test before wiring in). The guide's no-data view is now a proper empty state:
+  spinner + "first download can take a minute" while refreshing, error + retry, or a
+  download call-to-action.
+
 Key choices unchanged from the original plan: Electron + libmpv, Xtream Codes as the only
 provider format, EPG grid quality as the defining feature, recordings deferred to v2
-running server-side on docker-server (never client-side). Next concrete action is build-order
-step 3: Live TV UX polish — favorites (star + persist + favorites-first/filter view),
-channel-name search over the loaded list, quick channel switching, a modern visual
-theme (per Skip, 2026-07-05: modern colors/styling is expected in v1, not deferred),
-and the EPG staging-swap so the guide stays readable during background refreshes.
+running server-side on docker-server (never client-side). Next concrete action is
+build-order step 4: the VOD/series browser (Netflix-style category/poster browsing over
+the Xtream VOD API, resume-position tracking).

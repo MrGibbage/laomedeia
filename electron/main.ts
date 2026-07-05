@@ -5,6 +5,7 @@ import Mpv from 'electron-libmpv'
 import type { XtreamConfig } from './xtream'
 import * as xtream from './xtream'
 import * as settingsStore from './settings-store'
+import * as prefsStore from './prefs-store'
 import * as epg from './epg'
 import * as epgDb from './epg-db'
 
@@ -112,6 +113,14 @@ ipcMain.handle('settings:load', () => {
 
 ipcMain.handle('settings:save', (_event, config: XtreamConfig) => {
   return settingsStore.saveConfig(config)
+})
+
+ipcMain.handle('prefs:load', () => {
+  return prefsStore.loadPrefs()
+})
+
+ipcMain.handle('prefs:save', (_event, prefs: prefsStore.Prefs) => {
+  return prefsStore.savePrefs(prefs)
 })
 
 ipcMain.handle('epg:refresh', (_event, config: XtreamConfig, force?: boolean) => {

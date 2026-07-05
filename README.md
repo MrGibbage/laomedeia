@@ -30,6 +30,18 @@ npm install       # also rebuilds native addons (electron-libmpv, better-sqlite3
 npm run dev
 ```
 
+## Using the app
+
+- **Favorites:** hover a channel row and click the star; favorites sort first in the
+  list, and the ★ button next to the filter box shows favorites only. Stored with the
+  last-tuned channel in `%APPDATA%/iptv/prefs.json`.
+- **Channel filter:** the sidebar search box filters the loaded channel list by name
+  (no EPG involved).
+- **Quick switching:** with the Live TV tab focused (and not typing in a field),
+  `↑`/`↓` zap to the previous/next channel in the *visible* (filtered/sorted) list,
+  and `Backspace` jumps back to the previously tuned channel. The last channel
+  resumes automatically on next launch.
+
 ## EPG (guide) internals
 
 The guide is cached in SQLite (`better-sqlite3`) at `%APPDATA%/iptv/epg-cache.sqlite3`,
@@ -37,7 +49,8 @@ with an FTS5 index so search matches channel name, programme title, AND descript
 Ingestion streams the provider's full XMLTV feed (`xmltv.php`) through a SAX parser —
 feeds are tens of MB, so they never fully materialize in memory. The cache refreshes on
 app start when older than 12 hours (rechecked hourly), or on demand via the Guide tab's
-Refresh button.
+Refresh button. Refreshes ingest into staging tables and swap them in atomically at
+commit, so the previous guide stays fully browsable for the whole refresh.
 
 Dev tip: set `IPTV_EPG_FILE` to a local XMLTV file path before `npm run dev` to ingest
 from disk instead of hitting the provider (e.g. the gitignored sample in the project

@@ -1,11 +1,33 @@
+/* Design tokens — every component styles itself off these variables so the
+   whole app (channel list, guide, settings) reads as one theme. */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --bg-0: #0b0d12; /* window background */
+  --bg-1: #11141b; /* panels: header, sidebar, toolbars, detail pane */
+  --bg-2: #181d27; /* raised: buttons, inputs, programme blocks */
+  --bg-3: #222836; /* hover */
+  --border: #262d3c;
+  --border-strong: #38415a;
+  --text: #e7eaf2;
+  --text-dim: #9aa3b8;
+  --text-faint: #626b80;
+  --accent: #5b8cff;
+  --accent-hover: #7aa3ff;
+  --accent-soft: rgba(91, 140, 255, 0.16);
+  --accent-border: rgba(91, 140, 255, 0.55);
+  --danger: #f0606b;
+  --star: #f5c451;
+  --now-line: #ff5964;
+  --radius: 8px;
+  --radius-sm: 6px;
+
+  font-family: 'Segoe UI Variable Text', 'Segoe UI', Inter, system-ui, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  font-size: 15px;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--text);
+  background-color: var(--bg-0);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,13 +35,22 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-0: #f4f6fa;
+    --bg-1: #ffffff;
+    --bg-2: #eef1f6;
+    --bg-3: #e2e7f0;
+    --border: #d9dee9;
+    --border-strong: #b9c2d4;
+    --text: #1d2433;
+    --text-dim: #5b6478;
+    --text-faint: #8a92a6;
+    --accent: #3b6ae0;
+    --accent-hover: #2f57bd;
+    --accent-soft: rgba(59, 106, 224, 0.12);
+    --accent-border: rgba(59, 106, 224, 0.5);
+  }
 }
 
 html,
@@ -29,39 +60,89 @@ body,
   height: 100%;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+a {
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--accent-hover);
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  font-size: 0.88rem;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  color: var(--text);
+  background-color: var(--bg-2);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
-button:hover {
-  border-color: #646cff;
+button:hover:not(:disabled) {
+  background-color: var(--bg-3);
+  border-color: var(--border-strong);
 }
-button:focus,
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 2px solid var(--accent-border);
+  outline-offset: 1px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.btn-accent {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+.btn-accent:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+input[type='text'],
+input[type='password'],
+input[type='search'] {
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  box-sizing: border-box;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+input[type='text']:focus,
+input[type='password']:focus,
+input[type='search']:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+input::placeholder {
+  color: var(--text-faint);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
 }

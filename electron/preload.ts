@@ -56,6 +56,12 @@ contextBridge.exposeInMainWorld('settings', {
   save: (config: XtreamConfig) => ipcRenderer.invoke('settings:save', config),
 })
 
+// --------- Expose viewing prefs (favorites, last channel) ---------
+contextBridge.exposeInMainWorld('prefs', {
+  load: () => ipcRenderer.invoke('prefs:load'),
+  save: (prefs: import('./prefs-store').Prefs) => ipcRenderer.invoke('prefs:save', prefs),
+})
+
 // --------- Expose the EPG cache to the Renderer process ---------
 contextBridge.exposeInMainWorld('epg', {
   refresh: (config: XtreamConfig, force?: boolean) => ipcRenderer.invoke('epg:refresh', config, force),

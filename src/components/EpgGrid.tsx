@@ -283,8 +283,37 @@ function EpgGrid({ config, channels, tunedStreamId, onTune }: EpgGridProps) {
         </div>
       ) : !hasData ? (
         <div className="epg-empty-state">
-          <p>{refreshing ? statusText : 'No guide data yet.'}</p>
-          {!refreshing && <button onClick={() => window.epg.refresh(config, true)}>Download guide</button>}
+          {refreshing ? (
+            <>
+              <div className="epg-spinner" />
+              <p className="epg-empty-title">
+                {status?.phase === 'download' ? 'Downloading your guide…' : 'Indexing your guide…'}
+              </p>
+              <p className="epg-empty-sub">
+                The first download can take a minute or two — the grid appears automatically when
+                it finishes.
+              </p>
+            </>
+          ) : status?.state === 'error' ? (
+            <>
+              <p className="epg-empty-title">Couldn’t refresh the guide</p>
+              <p className="epg-empty-sub">{status.error}</p>
+              <button className="btn-accent" onClick={() => window.epg.refresh(config, true)}>
+                Try again
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="epg-empty-title">No guide data yet</p>
+              <p className="epg-empty-sub">
+                Download the programme guide from your provider to fill in the grid. After the
+                first download it refreshes automatically in the background.
+              </p>
+              <button className="btn-accent" onClick={() => window.epg.refresh(config, true)}>
+                Download guide
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="epg-scroll" ref={scrollRef}>
