@@ -112,7 +112,11 @@ from day one, and treat the provider URL itself as a secret (it embeds the accou
 3. Live TV UX polish (favorites, switching, now/next) **plus a modern visual theme** —
    cohesive colors/typography/spacing across channel list, guide, and settings (added
    2026-07-05; the dated look of existing apps is why this project exists, so it stays
-   in v1 rather than v2).
+   in v1 rather than v2). Also includes **EPG staging-swap** (added 2026-07-05): ingest
+   into staging tables and swap atomically on commit, so the previous guide stays fully
+   readable while a refresh runs (today the replace happens in-place inside the read
+   connection's transaction, so mid-refresh guide browsing can see a partial grid), and
+   a friendlier guide empty state while a first/stale refresh is in flight.
 4. VOD/series browser.
 5. Packaging/installer.
 6. v2: recording service on docker-server + app integration.
@@ -170,5 +174,6 @@ Key choices unchanged from the original plan: Electron + libmpv, Xtream Codes as
 provider format, EPG grid quality as the defining feature, recordings deferred to v2
 running server-side on docker-server (never client-side). Next concrete action is build-order
 step 3: Live TV UX polish — favorites (star + persist + favorites-first/filter view),
-channel-name search over the loaded list, quick channel switching, and a modern visual
-theme (per Skip, 2026-07-05: modern colors/styling is expected in v1, not deferred).
+channel-name search over the loaded list, quick channel switching, a modern visual
+theme (per Skip, 2026-07-05: modern colors/styling is expected in v1, not deferred),
+and the EPG staging-swap so the guide stays readable during background refreshes.
