@@ -54,12 +54,21 @@ from day one, and treat the provider URL itself as a secret (it embeds the accou
 ### Live TV
 - Xtream login (server URL + username + password), categories, channel list, favorites.
 - Channel logos from the API; quick channel switching; last-channel resume. A settings screen with the ability to enter account parameters, and a funtion to test the connection from the settings screen is a must. In fact, passing the connection test should be mandatory before being able to save the account information.
+- **Favorites:** star toggle per channel in the list, persisted locally (alongside the
+  Xtream config, in `userData`); favorited channels surface first / are filterable to a
+  favorites-only view. Small addition — lands with build-order step 3 (Live TV UX polish).
+- **Channel-name search:** quick client-side filter over the already-loaded channel list.
+  No EPG dependency, so it can land whenever's convenient in step 3 — doesn't need to wait
+  on EPG ingestion.
 - A sample playlist.m3u file is provided in the project directory
 
 ### EPG (the priority)
 - Virtualized channel × time grid (react-virtual or similar) — must stay smooth with
   hundreds of channels and days of program data.
-- Now/next bar, program detail pane, jump-to-now, day navigation, search.
+- Now/next bar, program detail pane, jump-to-now, day navigation.
+- **Search:** must match against channel name, program title, AND program description —
+  not just channel name. This depends on EPG data being ingested/cached first, so it lands
+  as part of build-order step 2, alongside the grid itself.
 - Data source: provider XMLTV for the full grid; short-form Xtream EPG for quick
   now/next lookups. Cache locally (SQLite or similar) and refresh on a schedule.
 - A sample xml file is provided.
@@ -121,6 +130,12 @@ Two things any future session needs to know:
 - Xtream HTTP calls live in the main process (`electron/xtream.ts`), not the renderer, to
   avoid CORS issues against arbitrary provider servers. Saved credentials live in
   `app.getPath('userData')/xtream-config.json`, never in the repo.
+
+Since step 1, scope got sharpened (2026-07-05, no code written yet for this part): favorites
+(star + persist + favorites-first/filter view) and channel-name search stay in step 3 as
+planned; EPG search was clarified to explicitly require matching channel name, program
+title, AND program description, not just channel name — that's a step 2 deliverable since
+it needs the ingested EPG data. Neither got pushed to v2; both fit v1 cleanly.
 
 Key choices unchanged from the original plan: Electron + libmpv, Xtream Codes as the only
 provider format, EPG grid quality as the defining feature, recordings deferred to v2
