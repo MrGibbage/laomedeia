@@ -199,6 +199,12 @@ function SeriesBrowser({ config, progress, onPlay }: SeriesBrowserProps) {
                     </p>
                   )}
 
+                  {info && info.seasons.length === 0 && (
+                    <p className="channel-hint" style={{ marginTop: 16 }}>
+                      No episodes available — the provider hasn't listed any for this title.
+                    </p>
+                  )}
+
                   {info && info.seasons.length > 0 && (
                     <>
                       <div className="series-season-tabs">
