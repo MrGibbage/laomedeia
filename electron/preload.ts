@@ -46,6 +46,7 @@ contextBridge.exposeInMainWorld('mpv', {
 contextBridge.exposeInMainWorld('app', {
   toggleFullScreen: () => ipcRenderer.invoke('app:toggleFullScreen') as Promise<boolean>,
   isFullScreen: () => ipcRenderer.invoke('app:isFullScreen') as Promise<boolean>,
+  relaunch: () => ipcRenderer.invoke('app:relaunch') as Promise<void>,
   onFullScreenChange: (callback: (isFullScreen: boolean) => void) => {
     const listener = (_event: unknown, isFullScreen: boolean) => callback(isFullScreen)
     ipcRenderer.on('app:fullscreen-changed', listener)
@@ -85,6 +86,8 @@ contextBridge.exposeInMainWorld('settings', {
 contextBridge.exposeInMainWorld('playback', {
   play: (url: string, streamId?: number) => ipcRenderer.invoke('playback:play', url, streamId),
   stop: () => ipcRenderer.invoke('playback:stop'),
+  setSoftwareDecoding: (enabled: boolean) =>
+    ipcRenderer.invoke('playback:setSoftwareDecoding', enabled),
   onStatus: (callback: (status: unknown) => void) => {
     const listener = (_event: unknown, status: unknown) => callback(status)
     ipcRenderer.on('playback:status', listener as never)

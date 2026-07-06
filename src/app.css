@@ -733,6 +733,21 @@
   font-size: 1.15rem;
 }
 
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 10px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.settings-toggle input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .settings-sub {
   margin: 0 0 10px;
   font-size: 0.83rem;

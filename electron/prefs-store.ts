@@ -8,6 +8,10 @@ export interface Prefs {
   favoriteStreamIds: number[]
   hiddenStreamIds: number[]
   lastStreamId: number | null
+  // When true, mpv decodes in software (hwdec=no) instead of on the GPU. Off
+  // by default; a "maximum compatibility" escape hatch for the rare malformed
+  // stream that can hang the hardware decoder (see electron/playback.ts).
+  softwareDecoding: boolean
 }
 
 function prefsPath(): string {
@@ -25,9 +29,10 @@ export async function loadPrefs(): Promise<Prefs> {
       favoriteStreamIds: toNumberArray(raw.favoriteStreamIds),
       hiddenStreamIds: toNumberArray(raw.hiddenStreamIds),
       lastStreamId: typeof raw.lastStreamId === 'number' ? raw.lastStreamId : null,
+      softwareDecoding: raw.softwareDecoding === true,
     }
   } catch {
-    return { favoriteStreamIds: [], hiddenStreamIds: [], lastStreamId: null }
+    return { favoriteStreamIds: [], hiddenStreamIds: [], lastStreamId: null, softwareDecoding: false }
   }
 }
 

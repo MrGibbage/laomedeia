@@ -45,6 +45,7 @@ function App() {
   const [favoritesOnly, setFavoritesOnly] = useState(false)
   const [channelFilter, setChannelFilter] = useState('')
   const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set())
+  const [softwareDecoding, setSoftwareDecoding] = useState(false)
   const [prefsLoaded, setPrefsLoaded] = useState(false)
   const [playbackStatus, setPlaybackStatus] = useState<PlaybackStatus | null>(null)
   const [isFullScreen, setIsFullScreen] = useState(false)
@@ -66,16 +67,22 @@ function App() {
   useEffect(() => {
     hiddenIdsRef.current = hiddenIds
   }, [hiddenIds])
+  const softwareDecodingRef = useRef(softwareDecoding)
+  useEffect(() => {
+    softwareDecodingRef.current = softwareDecoding
+  }, [softwareDecoding])
 
   const persistPrefs = (overrides: {
     favorites?: Set<number>
     hiddenIds?: Set<number>
     lastStreamId?: number | null
+    softwareDecoding?: boolean
   }) => {
     window.prefs.save({
       favoriteStreamIds: Array.from(overrides.favorites ?? favoritesRef.current),
       hiddenStreamIds: Array.from(overrides.hiddenIds ?? hiddenIdsRef.current),
       lastStreamId: 'lastStreamId' in overrides ? overrides.lastStreamId! : lastStreamIdRef.current,
+      softwareDecoding: overrides.softwareDecoding ?? softwareDecodingRef.current,
     })
   }
 
@@ -120,18 +127,13 @@ function App() {
     [],
   )
 
-  // mpv itself is unrecoverable once wedged (see electron/playback.ts) — the
-  // one useful automatic response is to make sure this channel doesn't do it
-  // to the next person too, so it's hidden immediately.
-  useEffect(() => {
-    if (playbackStatus?.state !== 'wedged' || playbackStatus.streamId == null) return
-    const streamId = playbackStatus.streamId
-    if (hiddenIdsRef.current.has(streamId)) return
-    const next = new Set(hiddenIdsRef.current)
-    next.add(streamId)
-    setHiddenIds(next)
-    persistPrefs({ hiddenIds: next })
-  }, [playbackStatus])
+  // NOTE: a wedge is NOT caused by the channel showing when it happens — it's
+  // provoked by switching channels right after a *different* stream failed
+  // (the failed stream's decode session is still tearing down; see
+  // electron/playback.ts). The channel on screen at wedge time is innocent, so
+  // there's deliberately no auto-hide here — doing so hid perfectly good
+  // channels (and even favorites) in testing. Recovery is the Restart button
+  // in the wedge UI below.
 
   useEffect(() => {
     window.settings.load().then((loaded) => {
@@ -141,6 +143,7 @@ function App() {
     window.prefs.load().then((p) => {
       setFavorites(new Set(p.favoriteStreamIds))
       setHiddenIds(new Set(p.hiddenStreamIds))
+      setSoftwareDecoding(p.softwareDecoding)
       lastStreamIdRef.current = p.lastStreamId
       setPrefsLoaded(true)
     })
@@ -309,6 +312,12 @@ function App() {
     persistPrefs({ hiddenIds: next })
   }
 
+  const toggleSoftwareDecoding = (enabled: boolean) => {
+    setSoftwareDecoding(enabled)
+    window.playback.setSoftwareDecoding(enabled) // apply live in mpv
+    persistPrefs({ softwareDecoding: enabled }) // remember for next launch
+  }
+
   // The list as displayed in the sidebar: name-filtered, favorites surfaced
   // first (or exclusively). Keyboard zapping walks this same order.
   const displayChannels = useMemo(() => {
@@ -409,6 +418,8 @@ function App() {
           channels={channels}
           hiddenIds={hiddenIds}
           onUnhideChannel={unhideChannel}
+          softwareDecoding={softwareDecoding}
+          onToggleSoftwareDecoding={toggleSoftwareDecoding}
         />
       )}
 
@@ -528,9 +539,13 @@ function App() {
                 {playbackStatus.state === 'loading' ? (
                   <span>Tuning {nowPlayingTitle ?? ''}…</span>
                 ) : playbackStatus.state === 'wedged' ? (
-                  <span className="playback-bar-msg">
-                    {playbackStatus.message} {view === 'live' ? 'This channel has been hidden.' : ''}
-                  </span>
+                  <>
+                    <span className="playback-bar-msg">
+                      {playbackStatus.message} Restart the player to keep watching — it'll
+                      pick up right where you left off.
+                    </span>
+                    <button onClick={() => window.app.relaunch()}>Restart player</button>
+                  </>
                 ) : (
                   <>
                     <span className="playback-bar-msg">

@@ -12,10 +12,15 @@ custom window title, sidebar hide/show, keyboard-shortcuts reference in Settings
 verified against a real account — details under "App shell / Windows feel" below.
 Build-order step 4 (VOD/series browser) is now fully implemented (2026-07-06): VOD
 browsing/playback/resume verified against a real account; series browsing (seasons/
-episodes) built the same session, pending its own manual verification pass. Next:
-build-order step 5, packaging/installer — plus two small backlog items requested
-2026-07-06 (a VOD/series time scrubber, and idle-based cursor show/hide instead of the
-current flat hide) noted under "VOD & Series" and "App shell / Windows feel" below.
+episodes) built the same session, pending its own manual verification pass. A second
+round of playback hardening landed 2026-07-06 after Skip reported the wedge recurring
+in normal use (see the "Wedge prevention (round two)" note at the end) — the wedge was
+re-diagnosed from real logs as a *switch-after-failure* sequence, not a bad channel,
+and got prevention (post-failure settle + optional software decoding) plus one-click
+in-app recovery. Next: build-order step 5, packaging/installer — plus two small
+backlog items requested 2026-07-06 (a VOD/series time scrubber, and idle-based cursor
+show/hide instead of the current flat hide) noted under "VOD & Series" and "App shell
+/ Windows feel" below.
 **Project home:** `C:\Users\skip\projects\iptv` on ganymede. Develop with the native
 Windows Claude binary from PowerShell — not WSL; Node tooling across /mnt/c is slow. If you detect the user running claude with any linux binary, remind the user to exit and use the Windows binanry in PowerShell, started from the project directory.
 This is Skip's first TypeScript project.
@@ -358,6 +363,43 @@ Playback error-handling hardening landed 2026-07-06, prompted by a real provider
   `file://`. Found and fixed while testing the wedge scenario against an unpacked build
   (dev mode's hot-reload supervisor doesn't survive an externally-killed child, which is
   *part of* why the kill-and-relaunch approach was abandoned above).
+
+Wedge prevention (round two), landed 2026-07-06 after Skip reported the "Playback engine
+became unresponsive" wedge still happening in normal use — and, worse, that once it hit,
+no channel would play until he Ctrl-C'd the app in the terminal and relaunched:
+
+- **Re-diagnosis from real logs (`userData/logs/main.log`).** The wedge is NOT caused by
+  the channel on screen when it freezes. Both logged incidents show the same sequence: a
+  stream fails or stalls → the user switches to another channel within a few seconds →
+  the next `loadfile replace` wedges the core ~8s later. The channels showing at wedge
+  time (67600167, 67587900) both played fine on later launches — they were innocent. The
+  trigger is stacking a fresh `loadfile` on top of a *failed* stream whose hardware-decode
+  session (and the GPU driver's decode context) is still tearing down.
+- **Consequence found and fixed:** the old auto-hide-on-wedge (App.tsx) hid whatever
+  channel was on screen at wedge time — i.e. innocent channels, including favorites.
+  Skip's `prefs.json` had accumulated several wrongly-hidden good channels (and one that
+  was hidden *and* favorited). Auto-hide-on-wedge is removed entirely; those channels were
+  restored in prefs.json. Manual hide (⊘) and Settings → Hidden Channels are unchanged.
+- **Prevention:**
+  1. *Post-failure settle* (`POST_FAIL_SETTLE_MS`, playback.ts): after any failure, the
+     next `loadfile` is deferred ~1.5s to let the dead stream's decode session finish
+     tearing down before a new one is stacked on it. Only the first switch after a failure
+     is delayed; normal channel switching is untouched. Reduces (doesn't eliminate) the
+     wedge, since the underlying hang is GPU-driver-level.
+  2. *Software-decoding toggle* (Settings → Playback, "Maximum compatibility"): flips mpv
+     `hwdec` from `auto-safe` to `no`. Pure-software decode can't deadlock the GPU driver,
+     so this eliminates the wedge class outright at a CPU cost. Off by default; persisted
+     in prefs.json (`softwareDecoding`) and re-applied on launch during `mpv:attach`, plus
+     applied live via `playback:setSoftwareDecoding` when toggled.
+- **Recovery without a terminal:** the wedge UI dropped the dead-end "restart the app"
+  text for a **"Restart player"** button. It calls `app:relaunch`, which spawns a fresh
+  detached instance and hard-`process.exit(0)`s the wedged one (mirrors exactly what Skip
+  did manually with Ctrl-C — chosen over Electron's graceful `app.quit()`/`relaunch()`
+  because the wedged GPU driver can block the normal exit path). The new instance
+  auto-resumes the last confirmed-good channel, so recovery is ~3s and one click. This is
+  also required for the packaged installer (step 5), where there's no terminal to Ctrl-C.
+  Consistent with the "honest message, no fragile auto-recovery" preference: still no
+  automatic relaunch, just a one-click manual one.
 
 - **VOD browsing, playback, and resume tracking implemented 2026-07-06** (pending manual
   verification against a real account): see "VOD & Series" above for the full shape.

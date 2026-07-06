@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, Menu } from 'electron'
 import { fileURLToPath } from 'node:url'
+import { spawn } from 'node:child_process'
 import path from 'node:path'
 import Mpv from 'electron-libmpv'
 import type { XtreamConfig } from './xtream'
@@ -111,10 +112,16 @@ function setupMpv(window: BrowserWindow) {
     },
   )
 
-  ipcMain.handle('mpv:attach', (_event, x: number, y: number, width: number, height: number) => {
+  ipcMain.handle('mpv:attach', async (_event, x: number, y: number, width: number, height: number) => {
     const handle = window.getNativeWindowHandle()
     const ok = player!.attach(handle, x, y, width, height)
-    if (ok) playback.configureMpv()
+    if (ok) {
+      // Apply the saved decode mode before configureMpv sets the rest of the
+      // runtime options, so hwdec is right from the very first loadfile.
+      const prefs = await prefsStore.loadPrefs()
+      playback.setSoftwareDecoding(prefs.softwareDecoding)
+      playback.configureMpv()
+    }
     return ok
   })
 
@@ -152,6 +159,28 @@ ipcMain.handle('playback:play', (_event, url: string, streamId?: number) => {
 
 ipcMain.handle('playback:stop', () => {
   playback.stop()
+})
+
+// Apply a GPU/software decode change live (takes effect on the next tune).
+// Persistence is the renderer's job via prefs.json — it's the single writer
+// for that file — and it's re-read here on the next launch's mpv:attach.
+ipcMain.handle('playback:setSoftwareDecoding', (_event, enabled: boolean) => {
+  playback.setSoftwareDecoding(enabled)
+})
+
+// Recovery from a wedged mpv core (see electron/playback.ts): the core is
+// genuinely dead and the GPU driver it hung may block Electron's own graceful
+// exit, so relaunch the hard way — spawn a fresh detached instance, then
+// process.exit(0) (the same hard-kill Ctrl-C did manually). The new instance
+// auto-resumes the last confirmed-good channel on its own.
+ipcMain.handle('app:relaunch', () => {
+  log('main', 'user-requested relaunch after wedge')
+  // In dev, execPath is electron.exe and argv[1..] point at the app; in a
+  // packaged build execPath is the app exe itself. Either way this re-runs
+  // exactly what launched us.
+  const args = process.argv.slice(1).filter((a) => a !== '--relaunch')
+  spawn(process.execPath, args, { detached: true, stdio: 'ignore' }).unref()
+  process.exit(0)
 })
 
 ipcMain.handle('xtream:testConnection', (_event, config: XtreamConfig) => {

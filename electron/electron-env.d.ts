@@ -27,6 +27,7 @@ interface Window {
   app: {
     toggleFullScreen: () => Promise<boolean>
     isFullScreen: () => Promise<boolean>
+    relaunch: () => Promise<void>
     onFullScreenChange: (callback: (isFullScreen: boolean) => void) => () => void
   }
   mpv: {
@@ -101,6 +102,7 @@ interface Window {
   playback: {
     play: (url: string, streamId?: number) => Promise<void>
     stop: () => Promise<void>
+    setSoftwareDecoding: (enabled: boolean) => Promise<void>
     onStatus: (
       callback: (status: import('../electron/playback').PlaybackStatus) => void,
     ) => () => void

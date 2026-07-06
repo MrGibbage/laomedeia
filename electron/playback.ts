@@ -45,6 +45,17 @@ export interface MpvEvent {
 const OPEN_TIMEOUT_MS = 25_000
 const STALL_TIMEOUT_MS = 20_000
 const WEDGE_TIMEOUT_MS = 8_000
+// After a stream fails/stalls, mpv is still tearing down that stream's decode
+// session (and, for hwdec, the GPU driver's decode context). Firing a fresh
+// `loadfile replace` on top of that half-dead session is exactly the sequence
+// that wedged the core in testing — the switch-after-failure case, confirmed
+// in userData/logs/main.log. So after a failure, hold the next load off for a
+// beat to let teardown finish before stacking a new decode on top of it. This
+// only delays the *first* channel change after a failure; normal switching is
+// untouched.
+const POST_FAIL_SETTLE_MS = 1_500
+
+const WEDGE_MESSAGE = 'Playback engine became unresponsive.'
 // A channel only becomes trustworthy as a startup-resume target after
 // surviving this long without stalling/erroring. SKY CINEMA SCI-FI (the
 // channel that originally wedged the app) played fine for ~30s before its
@@ -64,6 +75,13 @@ let openTimer: ReturnType<typeof setTimeout> | null = null
 let stallTimer: ReturnType<typeof setTimeout> | null = null
 let wedgeTimer: ReturnType<typeof setTimeout> | null = null
 let confirmTimer: ReturnType<typeof setTimeout> | null = null
+let settleTimer: ReturnType<typeof setTimeout> | null = null
+// Timestamp of the last failure, used to gate POST_FAIL_SETTLE_MS.
+let lastFailAt = 0
+// GPU (auto-safe) vs software (no) decode. Software can't deadlock the GPU
+// driver, so it's the "maximum compatibility" escape hatch for streams that
+// wedge the hardware decoder; off by default, driven from the saved pref.
+let softwareDecoding = false
 
 export function init(
   p: Mpv,
@@ -85,11 +103,7 @@ export function configureMpv(): void {
   player?.property('log-file', path.join(logsDir(), 'mpv.log'))
   player?.property('msg-level', 'all=warn,cplayer=v')
   player?.property('network-timeout', '10')
-  // auto-safe still uses the GPU decoder for well-formed streams but lets mpv
-  // decline hwdec on codec/profile combos it doesn't trust — the outright
-  // hang came from a malformed HEVC stream on d3d11va, so narrowing when
-  // hwdec is used at all reduces (not eliminates) the risk of a repeat.
-  player?.property('hwdec', 'auto-safe')
+  applyHwdec()
   // mpv's ytdl_hook script shells out to youtube-dl/yt-dlp for URLs it
   // doesn't recognize as a direct stream — this app doesn't bundle that
   // binary (every URL here is a direct Xtream endpoint, never a page needing
@@ -99,15 +113,33 @@ export function configureMpv(): void {
   player?.property('ytdl', 'no')
 }
 
+// auto-safe still uses the GPU decoder for well-formed streams but lets mpv
+// decline hwdec on codec/profile combos it doesn't trust — the outright hang
+// came from a malformed HEVC stream on d3d11va, so narrowing when hwdec is
+// used at all reduces (not eliminates) the risk of a repeat. `no` forces
+// pure-software decode, which can't deadlock the GPU driver at all.
+function applyHwdec(): void {
+  player?.property('hwdec', softwareDecoding ? 'no' : 'auto-safe')
+}
+
+// Toggle GPU vs software decoding. Applied live (mpv picks it up on the next
+// loadfile) and remembered by the caller so the choice survives a relaunch.
+export function setSoftwareDecoding(enabled: boolean): void {
+  softwareDecoding = enabled
+  applyHwdec()
+}
+
 function clearTimers(): void {
   if (openTimer) clearTimeout(openTimer)
   if (stallTimer) clearTimeout(stallTimer)
   if (wedgeTimer) clearTimeout(wedgeTimer)
   if (confirmTimer) clearTimeout(confirmTimer)
+  if (settleTimer) clearTimeout(settleTimer)
   openTimer = null
   stallTimer = null
   wedgeTimer = null
   confirmTimer = null
+  settleTimer = null
 }
 
 // Call after every command we expect mpv to at least acknowledge (loadfile,
@@ -118,7 +150,7 @@ function armWedgeWatch(): void {
   wedgeTimer = setTimeout(() => {
     log('playback', 'mpv core unresponsive')
     clearTimers()
-    setPhase('wedged', 'Playback engine became unresponsive — restart the app to continue.')
+    setPhase('wedged', WEDGE_MESSAGE)
   }, WEDGE_TIMEOUT_MS)
 }
 
@@ -134,9 +166,26 @@ export function play(url: string, streamId?: number): void {
   // Once mpv is confirmed wedged it never recovers — don't make the user
   // wait through another full open-timeout to be told the same thing again.
   if (phase === 'wedged') {
-    setPhase('wedged', 'Playback engine became unresponsive — restart the app to continue.')
+    setPhase('wedged', WEDGE_MESSAGE)
     return
   }
+  // If a stream just failed, let its decode session finish tearing down before
+  // stacking a new loadfile on top (see POST_FAIL_SETTLE_MS). Show the loading
+  // state immediately so the switch still feels responsive.
+  const sinceFail = Date.now() - lastFailAt
+  if (sinceFail < POST_FAIL_SETTLE_MS) {
+    setPhase('loading')
+    settleTimer = setTimeout(() => {
+      settleTimer = null
+      doLoad(url)
+    }, POST_FAIL_SETTLE_MS - sinceFail)
+    return
+  }
+  doLoad(url)
+}
+
+function doLoad(url: string): void {
+  if (!player) return
   log('playback', `loadfile ${url}`)
   player.command('loadfile', url, 'replace')
   setPhase('loading')
@@ -204,6 +253,7 @@ function bumpStall(): void {
 
 function fail(reason: string): void {
   clearTimers()
+  lastFailAt = Date.now()
   player?.command('stop')
   armWedgeWatch()
   const detail = lastMpvError()

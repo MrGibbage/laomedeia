@@ -9,6 +9,8 @@ interface SettingsScreenProps {
   channels?: LiveStream[]
   hiddenIds?: Set<number>
   onUnhideChannel?: (streamId: number) => void
+  softwareDecoding?: boolean
+  onToggleSoftwareDecoding?: (enabled: boolean) => void
 }
 
 function SettingsScreen({
@@ -18,6 +20,8 @@ function SettingsScreen({
   channels,
   hiddenIds,
   onUnhideChannel,
+  softwareDecoding,
+  onToggleSoftwareDecoding,
 }: SettingsScreenProps) {
   const [serverUrl, setServerUrl] = useState(initialConfig?.serverUrl ?? '')
   const [username, setUsername] = useState(initialConfig?.username ?? '')
@@ -115,6 +119,27 @@ function SettingsScreen({
           <p className={`settings-message ${canSave ? 'ok' : 'err'}`}>{testMessage}</p>
         )}
       </div>
+
+      {onToggleSoftwareDecoding && (
+        <div className="settings-card">
+          <h2>Playback</h2>
+          <label className="settings-toggle">
+            <input
+              type="checkbox"
+              checked={!!softwareDecoding}
+              onChange={(e) => onToggleSoftwareDecoding(e.target.checked)}
+            />
+            <span>Maximum compatibility (software decoding)</span>
+          </label>
+          <p className="settings-sub" style={{ marginBottom: 0 }}>
+            Decodes video on the CPU instead of the GPU. Turn this on if playback
+            ever freezes the player and you have to restart it — some malformed
+            streams can hang the GPU decoder, and software decoding sidesteps that
+            entirely. Costs more CPU (fine for most channels; heaviest on 4K).
+            Takes effect on the next channel you tune.
+          </p>
+        </div>
+      )}
 
       <div className="settings-card">
         <details className="shortcuts-details">
