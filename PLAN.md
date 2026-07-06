@@ -70,6 +70,14 @@ from day one, and treat the provider URL itself as a secret (it embeds the accou
   No EPG dependency, so it can land whenever's convenient in step 3 — doesn't need to wait
   on EPG ingestion.
 - A sample playlist.m3u file is provided in the project directory
+- **Backlog, requested 2026-07-06, wants a design look before turning on:** category
+  browsing for Live TV, mirroring the VOD/series category sidebar. The API already
+  supports it (`getLiveCategories` in `electron/xtream.ts` is implemented and even
+  wired through IPC/preload, just never called from any UI). Skip's own read: search
+  is already blazing fast for getting to a known channel, so this would mainly help
+  discovery ("what do I have in Sports?"), not speed — wants to see a concrete design
+  before deciding whether it's worth the added sidebar clutter next to favorites/
+  search/hide controls that are already there.
 
 ### EPG (the priority)
 - Virtualized channel × time grid (react-virtual or similar) — must stay smooth with
@@ -177,6 +185,22 @@ from day one, and treat the provider URL itself as a secret (it embeds the accou
   interacting. `window.mpv.setCursorVisible` (added 2026-07-06) already does the actual
   hide/show; this just needs a movement listener + debounce timer driving it instead of
   the current flat `!theaterMode` toggle.
+
+### Theming
+- **Backlog, requested 2026-07-06, wants a design look before turning on:** Skip likes
+  the current look but wants more of it — an in-app dark/light toggle (today `src/
+  index.css` only follows the OS's `prefers-color-scheme`, no manual switch) and some
+  variety beyond the one palette. Asked whether an open-source "theme marketplace" like
+  VS Code's exists for apps like this — answer: not a drag-and-drop gallery (no shared
+  schema across apps), but there's a well-established open-source ecosystem of
+  hand-portable color palettes built for exactly this (Catppuccin, Nord, Dracula,
+  Gruvbox, Tokyo Night, Rosé Pine, Solarized — all permissively licensed, all popular
+  precisely because people copy their hex codes into whatever app they're using).
+  Concrete shape discussed: since the whole look is already just ~15 CSS custom
+  properties in `index.css` (`--bg-0`, `--accent`, etc.), ship 2-3 of those palettes
+  translated to our variable names as built-in picks, plus a documented-schema "paste a
+  small JSON of hex values" import box in Settings for anything else found externally —
+  not a hosted gallery, not a bundled library of dozens of themes.
 
 ## v2 Scope (Recordings)
 
