@@ -2,7 +2,7 @@
 
 ## Document Status
 
-- Product: Skip's IPTV Viewer
+- Product: Laomedeia
 - Platform: Windows desktop
 - Status: BETA v0.1 living PRD reflecting the product on 2026-07-12
 - Provider protocol: Xtream Codes API
@@ -14,7 +14,7 @@ pretending every decision was known before implementation.
 
 ## Product Summary
 
-Skip's IPTV Viewer is a modern Windows IPTV client centered on a fast, readable
+Laomedeia is a modern Windows IPTV client centered on a fast, readable
 electronic programme guide. It combines Live TV, a virtualized guide, movies, series,
 resume support, and a personalized Home screen in one themed desktop experience.
 

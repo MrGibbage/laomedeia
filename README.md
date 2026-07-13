@@ -1,11 +1,14 @@
-# Skip's IPTV Viewer
+# Laomedeia
 
 **BETA v0.1**
 
-A modern Windows IPTV application for Xtream-compatible providers. Skip's IPTV Viewer
+A modern Windows IPTV application for Xtream-compatible providers. Laomedeia
 combines Live TV, a fast electronic programme guide, movies, TV series, resume playback,
 favorites, and a personalized Home screen without the dated interface common to many
 desktop IPTV clients.
+
+The project name is pronounced **LAY-oh-muh-dee-ah**. Laomedeia is one of Neptune's
+moons; its compass-and-play icon reflects the idea of navigating a media universe.
 
 > Beta software: core viewing features are working, but this release is still completing
 > its formal release-readiness and clean-machine validation process. If something goes
@@ -41,9 +44,9 @@ credentials. Users must supply their own lawful provider account.
 
 1. Download the BETA v0.1 Windows installer from the project's
    [GitHub Releases](https://github.com/MrGibbage/iptv/releases) page.
-2. Run `IPTV Viewer-Windows-0.1.0-Setup.exe`.
+2. Run `Laomedeia-Windows-0.1.0-Setup.exe`.
 3. Choose the installation directory when prompted.
-4. Launch **IPTV Viewer** from the Start menu or desktop shortcut.
+4. Launch **Laomedeia** from the Start menu or desktop shortcut.
 
 The installer is per-user and does not require a system-wide installation. Uninstalling
 the application retains account settings, preferences, watch progress, and Guide cache so
@@ -218,8 +221,9 @@ Beta updates are published through
 the existing version to retain local preferences and progress.
 
 Uninstall from **Windows Settings → Apps → Installed apps**. Application data is retained
-by default. To remove it manually, delete the IPTV Viewer directory under the current
-Windows account's application-data folder after uninstalling.
+by default. To remove it manually, delete `%APPDATA%\iptv` after uninstalling. The
+internal data-directory name remains `iptv` so upgrades from pre-Laomedeia beta builds
+retain account settings, favorites, history, and Guide data.
 
 ## Development
 

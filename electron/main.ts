@@ -84,8 +84,8 @@ async function createWindow() {
   rendererClosing = false
   const savedWindowState = await windowStateStore.loadWindowState()
   win = new BrowserWindow({
-    title: "Skip's IPTV Viewer",
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    title: 'Laomedeia',
+    icon: path.join(process.env.VITE_PUBLIC, 'icon.png'),
     ...savedWindowState.bounds,
     minWidth: 800,
     minHeight: 500,

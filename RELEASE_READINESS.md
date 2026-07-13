@@ -2,7 +2,7 @@
 
 ## Document Status
 
-- Product: Skip's IPTV Viewer
+- Product: Laomedeia
 - Target: First distributable Windows release
 - Status: **Not ready for external distribution**
 - Last reviewed: 2026-07-13
@@ -22,8 +22,8 @@ an installed build on a clean Windows machine.
 | Runtime security | Blocked | Supported Electron and hardened renderer boundary |
 | Credential storage | Blocked | Secrets encrypted and plaintext migrated |
 | Data integrity | Blocked | Atomic writes and single-instance behavior |
-| Installer identity | Blocked | Real version, icons, metadata, Windows-only targets |
-| Packaged smoke test | Not run | Full checklist passes on clean Windows |
+| Installer identity | In progress | Real version, icons, metadata, Windows-only targets |
+| Packaged smoke test | In progress | Full checklist passes on clean Windows |
 | Distribution trust | Undecided | Signing/update strategy explicitly accepted |
 
 ## 1. Release Blockers
@@ -39,6 +39,12 @@ The complete `win-unpacked` folder was then zipped, copied to a separate laptop 
 development setup, extracted, and successfully exercised with behavior matching the build
 machine.
 
+The generated per-user NSIS installer was also copied to the laptop, installed to the
+default `%LOCALAPPDATA%\Programs\IPTV Viewer` location under the pre-Laomedeia product
+name, launched through the installer's completion action, and exercised successfully. It
+correctly reused the existing Electron
+user-data directory created by the earlier unpacked-build test.
+
 - [x] Confirm electron-builder includes required production dependencies alongside the
   explicit `dist` and `dist-electron` application files.
 - [x] Ensure `electron-libmpv` is packaged and its native addon is unpacked.
@@ -52,9 +58,12 @@ machine.
 - [x] Launch `win-unpacked` without Node/npm or the development checkout on `PATH`.
 - [x] Confirm Live playback and EPG SQLite access work from `win-unpacked`.
 
-Private beta builds currently set `win.signAndEditExecutable: false`. This avoids a local
-Windows symlink-privilege failure while extracting electron-builder's signing-tool bundle.
-Re-enable executable editing when icons/metadata and any signing decision are implemented.
+The Laomedeia branding pass supplies production PNG/ICO assets and a reproducible
+post-packaging resource hook for executable metadata. `Laomedeia.exe` launches and closes
+cleanly on the build machine, and the NSIS installer builds with the expected name,
+version, description, and icon. The renamed installer still needs an installed-build
+upgrade test on the separate laptop before the installer-identity gate is complete. Code
+signing remains a separate distribution-trust decision.
 
 Reference: [electron-builder application contents](https://www.electron.build/docs/contents/).
 
@@ -141,15 +150,15 @@ Apply to account configuration, preferences, progress, and window state.
 ## 2. Packaging and Installer Identity
 
 - [x] Set the beta semantic version to `0.1.0` (BETA v0.1).
-- [ ] Pick the final product/executable name and use it consistently.
-- [ ] Replace Vite/Electron placeholder favicon and application icons.
-- [ ] Provide Windows `.ico` assets at appropriate sizes.
-- [ ] Remove macOS and Linux targets; current playback integration is Windows-specific.
-- [ ] Confirm `appId` is stable and suitable for upgrades.
-- [ ] Confirm per-user NSIS installation is intentional.
-- [ ] Confirm allowing installation-directory changes is intentional.
-- [ ] Decide whether uninstall should retain account/preferences/progress (currently yes).
-- [ ] Add publisher/copyright metadata.
+- [x] Pick the final product/executable name and use it consistently: **Laomedeia**.
+- [x] Replace Vite/Electron placeholder favicon and application icons.
+- [x] Provide Windows `.ico` assets at appropriate sizes.
+- [x] Remove macOS and Linux targets; current playback integration is Windows-specific.
+- [x] Confirm `appId` remains `org.pelorus.iptv` for upgrades from pre-rename builds.
+- [x] Confirm per-user NSIS installation is intentional.
+- [x] Confirm allowing installation-directory changes is intentional.
+- [x] Confirm uninstall retains account/preferences/progress intentionally.
+- [x] Add publisher/copyright metadata.
 - [ ] Add license and third-party notices appropriate to distribution.
 - [ ] Generate SHA-256 checksums for installer artifacts.
 - [ ] Create a Git tag matching the application version.

@@ -9,10 +9,13 @@
     "node_modules/electron-libmpv/**",
     "node_modules/better-sqlite3/**"
   ],
-  "productName": "IPTV Viewer",
+  // Keep appId stable across the Laomedeia rename so existing installations
+  // upgrade in place and retain their user data.
+  "productName": "Laomedeia",
   "directories": {
     "output": "release/${version}"
   },
+  "afterPack": "scripts/stamp-windows-executable.mjs",
   "files": [
     "dist",
     "dist-electron"
@@ -26,9 +29,10 @@
     }
   ],
   "win": {
-    // Keep private-beta builds unsigned for now. This also avoids extracting
-    // electron-builder's cross-platform signing bundle, whose unused macOS
-    // symlinks require Windows Developer Mode or an elevated shell.
+    "icon": "build/icon.ico",
+    // electron-builder 24 downloads a cross-platform rcedit archive whose two
+    // irrelevant macOS symlinks cannot be extracted on standard Windows. The
+    // afterPack hook below performs the same unsigned PE-resource edit in JS.
     "signAndEditExecutable": false,
     "target": [
       {
@@ -44,6 +48,9 @@
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false
+    "deleteAppDataOnUninstall": false,
+    "installerIcon": "build/icon.ico",
+    "uninstallerIcon": "build/icon.ico",
+    "installerHeaderIcon": "build/icon.ico"
   }
 }

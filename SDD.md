@@ -2,7 +2,7 @@
 
 ## Document Status
 
-- System: Skip's IPTV Viewer
+- System: Laomedeia
 - Status: BETA v0.1 living design document reflecting implementation on 2026-07-12
 - Platform: Windows, Electron 30, React 18, TypeScript
 - Related: [PRD.md](PRD.md), [PLAN.md](PLAN.md), [README.md](README.md)

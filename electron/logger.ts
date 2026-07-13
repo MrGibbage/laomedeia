@@ -63,7 +63,7 @@ export function createDiagnosticReport(metadata: Record<string, string | number 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
   const destination = path.join(reportDir, `iptv-diagnostics-${stamp}.txt`)
   const sections = [
-    "Skip's IPTV Viewer diagnostic report",
+    'Laomedeia diagnostic report',
     `Created: ${new Date().toISOString()}`,
     '',
     'Environment',

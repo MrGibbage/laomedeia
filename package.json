@@ -2,6 +2,9 @@
   "name": "iptv",
   "private": true,
   "version": "0.1.0",
+  "description": "Laomedeia is a modern Windows IPTV viewer for Xtream-compatible providers.",
+  "author": "Skip",
+  "copyright": "Copyright © 2026 Skip",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -34,6 +37,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "patch-package": "^8.0.1",
+    "resedit": "^3.0.2",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vite-plugin-electron": "^0.28.6",

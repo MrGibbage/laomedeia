@@ -1,4 +1,4 @@
-# IPTV Viewer App (Custom Windows App)
+# Laomedeia (Custom Windows IPTV App)
 
 Plan for a custom-built Windows IPTV viewing app, motivated by every tested Windows
 IPTV app having a dated UI and a bad EPG experience. The EPG is the #1 priority —
@@ -45,7 +45,16 @@ places `libmpv-2.dll` beside the executable. The packaged app starts successfull
 build machine, Live/EPG/movie/episode behavior has been manually verified, and the normal
 development app still starts afterward. The zipped `win-unpacked` folder was also copied
 to and fully exercised on a separate laptop with no development setup, confirming that the
-runtime package is self-contained. The NSIS installer remains open.
+runtime package is self-contained. The per-user NSIS installer was subsequently built,
+installed, and exercised successfully on that laptop.
+
+**Branding update (2026-07-13):** The product is now **Laomedeia** (pronounced
+LAY-oh-muh-dee-ah), with the approved compass-and-play icon applied to the app window,
+Windows executable, and NSIS installer. The stable `org.pelorus.iptv` application ID and
+internal `iptv` user-data folder are intentionally unchanged so existing beta settings,
+favorites, and progress survive the rename. The renamed unpacked app launches cleanly,
+and `Laomedeia-Windows-0.1.0-Setup.exe` builds with the expected icon and metadata. An
+installed upgrade test of the renamed installer on the separate laptop remains open.
 
 The current product version is **BETA v0.1** (`0.1.0`). It remains beta until the gates
 in `RELEASE_READINESS.md` have passed.
@@ -268,8 +277,9 @@ from day one, and treat the provider URL itself as a secret (it embeds the accou
      `patches/electron-libmpv+1.1.0.patch` (regenerated via `npx patch-package
      electron-libmpv` after editing `node_modules/electron-libmpv` directly, then
      `npx electron-rebuild -f -w electron-libmpv` to rebuild the native binary).
-  2. **Custom window title** — "Skip's IPTV Viewer" via `BrowserWindow({ title })` and
-     `<title>` in `index.html`.
+  2. **Custom window title** — originally "Skip's IPTV Viewer," renamed to
+     "Laomedeia" for BETA v0.1 via `BrowserWindow({ title })` and `<title>` in
+     `index.html`.
   3. **Toggle the channel sidebar** — a header button (`☰`) hides/shows the Live tab's
      channel list while windowed; keyboard zapping keeps working with it hidden.
   4. **Keyboard shortcuts reference in Settings** — collapsed-by-default `<details>`
